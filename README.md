@@ -44,3 +44,5 @@ npm start
 This application is ready to be deployed to Heroku with minimal configuration.
 
 ## Links
+- Heroku Link:  https://inkdrop-notes-18222a4e26a3.herokuapp.com/
+- Repo: https://github.com/LewisSin/InkDrop-Notes
