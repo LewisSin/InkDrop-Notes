@@ -1,54 +1,53 @@
-const dbPath = "./db/db.json"; // Path to the JSON database for easier reference
-const fs = require("fs");
-const fsPromises = fs.promises; // Utilize promises for file system operations
-const generateUniqueId = require("generate-unique-id");
-const expressRouter = require("express").Router();
+const pathToDatabase = "./db/db.json"; // Updated path variable for clarity
+const fileSystem = require("fs").promises; // Direct import of promises from 'fs'
+const createUniqueID = require("generate-unique-id"); // Slightly changed naming
+const router = require("express").Router(); // Renamed for simplicity
 
-// Route to retrieve notes
-expressRouter.get("/", async (req, res) => {
-    console.info(`${req.method} request received for notes`);
+// Fetch all notes
+router.get("/", async (request, response) => {
+    console.info(`Received ${request.method} request for notes`);
     try {
-        const data = await fsPromises.readFile(dbPath, "utf8");
-        res.json(JSON.parse(data));
+        const notesData = await fileSystem.readFile(pathToDatabase, "utf8");
+        response.json(JSON.parse(notesData));
     } catch (error) {
-        console.error("Error reading from db.json:", error);
-        res.status(500).send("Error reading note data.");
+        console.error("Failed to read notes from database:", error);
+        response.status(500).send("Failed to retrieve notes.");
     }
 });
 
-// Route to add a new note
-expressRouter.post("/", async (req, res) => {
-    const { title, text } = req.body;
+// Create a new note
+router.post("/", async (request, response) => {
+    const { title, text } = request.body;
     if (title && text) {
-        const newNote = { title, text, id: generateUniqueId() };
+        const note = { title, text, id: createUniqueID() };
         try {
-            const data = await fsPromises.readFile(dbPath, "utf8");
-            const notes = JSON.parse(data);
-            notes.push(newNote);
-            await fsPromises.writeFile(dbPath, JSON.stringify(notes, null, 4));
-            res.json(newNote);
+            const notesData = await fileSystem.readFile(pathToDatabase, "utf8");
+            const notes = JSON.parse(notesData);
+            notes.push(note);
+            await fileSystem.writeFile(pathToDatabase, JSON.stringify(notes, null, 4));
+            response.json(note);
         } catch (error) {
-            console.error("Error writing new note:", error);
-            res.status(500).send("Error saving new note.");
+            console.error("Failed to save the note:", error);
+            response.status(500).send("Failed to save the note.");
         }
     } else {
-        res.status(400).send("Please provide both a title and text for the note.");
+        response.status(400).send("Both title and text are required to create a note.");
     }
 });
 
-// Route to delete a note
-expressRouter.delete("/:id", async (req, res) => {
-    const noteId = req.params.id;
+// Delete a note by ID
+router.delete("/:id", async (request, response) => {
+    const { id } = request.params;
     try {
-        const data = await fsPromises.readFile(dbPath, "utf8");
-        const notes = JSON.parse(data);
-        const filteredNotes = notes.filter((note) => note.id !== noteId);
-        await fsPromises.writeFile(dbPath, JSON.stringify(filteredNotes, null, 4));
-        res.json({ message: `Note with id ${noteId} has been deleted.` });
+        const notesData = await fileSystem.readFile(pathToDatabase, "utf8");
+        const notes = JSON.parse(notesData);
+        const remainingNotes = notes.filter(note => note.id !== id);
+        await fileSystem.writeFile(pathToDatabase, JSON.stringify(remainingNotes, null, 4));
+        response.json({ message: `Note ${id} has been removed.` });
     } catch (error) {
-        console.error("Error deleting note:", error);
-        res.status(500).send(`Error deleting note with id ${noteId}.`);
+        console.error("Failed to delete the note:", error);
+        response.status(500).send(`Could not delete note with ID ${id}.`);
     }
 });
 
-module.exports = expressRouter;
+module.exports = router;

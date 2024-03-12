@@ -1,31 +1,30 @@
 const express = require("express");
-const paths = require("path");
-const serverPort = process.env.PORT || 3001;
-const app = express();
-const routes = require("./routes/apiRoutes");
+const pathUtil = require("path");
+const defaultPort = process.env.PORT || 3001;
+const noteApp = express();
+const noteRoutes = require("./routes/apiRoutes");
 
-// Middleware for parsing application/json
-app.use(express.json());
-// Middleware for parsing application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
+// Parse JSON and urlencoded request bodies
+noteApp.use(express.json());
+noteApp.use(express.urlencoded({ extended: true }));
 
-// Serve static files from the 'public' directory
-app.use(express.static("public"));
+// Serve files from the 'public' directory
+noteApp.use(express.static("public"));
 
-// Route to serve the landing page
-app.get("/", (req, res) => {
-    res.sendFile(paths.join(__dirname, "public/index.html"));
+// Landing page route
+noteApp.get("/", (req, res) => {
+    res.sendFile(pathUtil.join(__dirname, "/public/index.html"));
 });
 
-// Route to serve the notes page
-app.get("/notes", (req, res) => {
-    res.sendFile(paths.join(__dirname, "public/notes.html"));
+// Notes page route
+noteApp.get("/notes", (req, res) => {
+    res.sendFile(pathUtil.join(__dirname, "/public/notes.html"));
 });
 
-// API routes for notes
-app.use("/api/notes", routes);
+// Use the API routes for notes
+noteApp.use("/api/notes", noteRoutes);
 
-// Starting the server
-app.listen(serverPort, () => {
-    console.log(`InkDrop Notes app is listening at http://localhost:${serverPort}`);
+// Launch the server
+noteApp.listen(defaultPort, () => {
+    console.log(`Note Taker app now live at http://localhost:${defaultPort}`);
 });
